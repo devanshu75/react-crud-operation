@@ -2,33 +2,12 @@ import "./App.css";
 
 import { nanoid } from "nanoid";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Form from "./components/Form";
 import TaskList from "./components/TaskList";
 
-const DATA = [
-  {
-    id: `todo-${nanoid()}`,
-    name: "Eat",
-    completed: false,
-  },
-  {
-    id: `todo-${nanoid()}`,
-    name: "Sleep",
-    completed: false,
-  },
-  {
-    id: `todo-${nanoid()}`,
-    name: "Study",
-    completed: false,
-  },
-  {
-    id: `todo-${nanoid()}`,
-    name: "Exercise",
-    completed: false,
-  },
-];
+const DATA = [];
 
 function App() {
   const [tasks, setTasks] = useState(DATA);
@@ -41,13 +20,15 @@ function App() {
       completed={task.completed}
       toggleTaskCompleted={toggleTaskCompleted}
       deleteTask={deleteTask}
-      editTask = {editTask}
+      editTask={editTask}
     />
   ));
 
   function addTask(name) {
     const newTask = { id: `todo-${nanoid()}`, name, completed: false };
-    setTasks([...tasks, newTask]);
+    const updatedTask = [newTask, ...tasks];
+    setTasks(updatedTask);
+    localStorage.setItem("Tasks", JSON.stringify(updatedTask));
   }
 
   function toggleTaskCompleted(id) {
@@ -58,11 +39,14 @@ function App() {
       return task;
     });
     setTasks(updatedTasks);
+
+    localStorage.setItem("Tasks", JSON.stringify(updatedTasks));
   }
 
   function deleteTask(id) {
-    const remainingTasks = tasks.filter((task)=> id !== task.id);
+    const remainingTasks = tasks.filter((task) => id !== task.id);
     setTasks(remainingTasks);
+    localStorage.setItem("Tasks", JSON.stringify(remainingTasks));
   }
 
   function editTask(id, newName) {
@@ -73,15 +57,26 @@ function App() {
       return task;
     });
     setTasks(editedTaskList);
+    localStorage.setItem("Tasks", JSON.stringify(editedTaskList));
   }
-  
+
+  useEffect(() => {
+    const storedTasks = JSON.parse(localStorage.getItem("Tasks"));
+    if (storedTasks) {
+      setTasks(storedTasks);
+    }
+  }, []);
 
   return (
     <div className="container">
       <h1 className="poppins-semibold title">CRUD OPERATION</h1>
       <Form addTask={addTask} />
       <div className="taskList-container">
-        <ul className="todo-list">{listTask}</ul>
+        {tasks.length === 0 ? (
+          <p className="no-task-message">Add a task</p>
+        ) : (
+          <ul className="todo-list">{listTask}</ul>
+        )}
       </div>
     </div>
   );
